@@ -1,122 +1,69 @@
+import java.text.Normalizer;
+import java.util.regex.Pattern;
 
 public class Vigenere {
 
     static String encode(String s, String password) {
 
+        //We create a String that we will use to check the position of a letter on the alphabet
+        //we have to add a 0 on the start to make the values match.
         String alf = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        s = s.toUpperCase();
-        StringBuilder result = new StringBuilder(s.toUpperCase());
-
+        //This counter will be used to select the letter from the password.
         int cont = 0;
 
-        s = limpia(s);
-        password = limpia(password);
-
-        for (int i = 0; i < s.length(); i++) {
-
-            char x = (char) s.codePointAt(i);
-            char c = s.charAt(i);
-
-            if (x < 65 || x > 90) {
-                continue;
-            }
-
-            int c2 = alf.indexOf(c);
-
-            if (cont == password.length()) {
-                cont = 0;
-            }
-
-            int valornum = alf.indexOf(password.toUpperCase().charAt(cont));
-            int conta = c2 + valornum;
-
-            if (conta >= alf.length()) {
-                conta = conta - 26;
-            }
-
-            char c3 = alf.charAt(conta);
-            cont++;
-
-            result.setCharAt(i, c3);
-
-        }
-
-        return result.toString();
-    }
-
-
-    static String limpia(String s) {
-
+        //First of all we erase accents from our string and password and save the string inside a StringBuilder.
+        s = limpia(s.toUpperCase());
+        password = limpia(password.toUpperCase());
         StringBuilder result = new StringBuilder(s);
 
+
         for (int i = 0; i < s.length(); i++) {
 
-            char c = (char) s.codePointAt(i);
+            //First of all we check if the character on the loop is a letter or a symbol.
+            if (s.codePointAt(i) < 65 || s.codePointAt(i) > 90) { continue; }
 
-            //a con acentos
-            if (c == 'á' || c == 'à' || c == 'Á' || c == 'À') {
-                c = 65;
-                result.setCharAt(i, c);
-            }
-            //e con acentos
-            if (c == 'É' || c == 'È' || c == 'é' || c == 'è') {
-                c = 69;
-                result.setCharAt(i, c);
-            }
-            //i con acentos
-            if (c == 'í' || c == 'ì' || c == 'Í' || c == 'Ì') {
-                c = 73;
-                result.setCharAt(i, c);
-            }
-            //o con acentos
-            if (c == 'Ò' || c == 'Ó' || c == 'ó' || c == 'ò') {
-                c = 79;
-                result.setCharAt(i, c);
-            }
-            //u con acentos
-            if (c == 'ú' || c == 'ù' || c == 'Ù' || c == 'Ú') {
-                c = 85;
-                result.setCharAt(i, c);
-            }
+            //Here we control that the counter is not greater than the length of the key.
+            if (cont == password.length()) { cont = 0; }
 
+            //We take the value on the alphabet of the letter on the loop
+            //and add the value of the letter from the password.
+            int conta = alf.indexOf(s.charAt(i)) + alf.indexOf(password.charAt(cont));
+
+            //We control that the result of the sum is less than 26.
+            while (conta >= alf.length()) { conta -= 26; }
+
+            //Finally we select the resulting letter and replace it on the StringBuilder, incrementing the counter.
+            char c = alf.charAt(conta);
+            cont++;
+
+            result.setCharAt(i, c);
         }
         return result.toString();
     }
 
     static String decode(String s, String password) {
 
+        //To perform the decryption we will follow the same steps, except for those indicated below.
         String alf = "0ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        s = s.toUpperCase();
-        StringBuilder result = new StringBuilder(s.toUpperCase());
+        s = limpia(s.toUpperCase());
+        password = limpia(password.toUpperCase());
+        StringBuilder result = new StringBuilder(s);
 
         int cont = 0;
 
-        s = limpia(s);
-        password = limpia(password);
-
         for (int i = 0; i < s.length(); i++) {
 
-            char x = (char) s.codePointAt(i);
-            char c = s.charAt(i);
+            //Same checks.
+            if (s.codePointAt(i) < 65 || s.codePointAt(i) > 90) { continue; }
+            if (cont == password.length()) { cont = 0; }
 
-            if (x < 65 || x > 90) {
-                continue;
-            }
+            //Instead of adding the values, we substract both values to know the position of the new letter.
+            int conta = alf.indexOf(s.charAt(i)) - alf.indexOf(password.charAt(cont));
 
-            int c2 = alf.indexOf(c);
-
-            if (cont == password.length()) {
-                cont = 0;
-            }
-
-            int valornum = alf.indexOf(password.toUpperCase().charAt(cont));
-            int conta = c2 - valornum;
-
-            if (conta < 0) {
-                conta = conta + 26;
-            }
+            //We control that the result of the sum is greater than 0.
+            while (conta < 0) { conta += 26; }
 
             char c3 = alf.charAt(conta);
             cont++;
@@ -124,6 +71,15 @@ public class Vigenere {
             result.setCharAt(i, c3);
         }
         return result.toString();
+    }
+
+    static String limpia(String str) {
+
+        //This function is used to erase the accents in our string.
+
+        String nfdNormalizedString = Normalizer.normalize(str,  Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(nfdNormalizedString).replaceAll("");
     }
 }
 
